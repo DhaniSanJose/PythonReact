@@ -17,7 +17,7 @@ class ProjectViewSet(viewsets.ViewSet):
     serializer_class = ProjectSerializer
 
     def list(self, request):
-        queryset = self.queryset
+        queryset = Project.objects.all()
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
 

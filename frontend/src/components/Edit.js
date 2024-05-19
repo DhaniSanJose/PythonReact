@@ -1,4 +1,4 @@
-import {React,useState} from 'react'
+import {React, useEffect} from 'react'
 import { Box, Button, Typography } from '@mui/material'
 import MyDatePickerField from './forms/MyDatePicker'
 import MyTextField from './forms/MyTextField'
@@ -7,34 +7,43 @@ import { useForm } from 'react-hook-form'
 import MySelectField from './forms/MySelectField'
 import AxiosInstance from './Axios'
 import  Dayjs  from 'dayjs'
-import {useNavigate} from 'react-router-dom'
-import { yupResolver } from "@hookform/resolvers/yup"
-import * as yup from "yup"
+import {useNavigate, useParams} from 'react-router-dom'
+
 
 const Create = () => {
+    const MyParam = useParams()
+    const MyId = MyParam.id
+    // const [loading, setLoading] = useState(true)
+    const GetData = () => {
+      AxiosInstance.get(`project/${MyId}`).then((res)=>{
+        console.log(res.data)
+        setValue('name', res.data.name)
+        setValue('comments', res.data.comments)
+        setValue('status', res.data.status)
+        setValue('start_date', Dayjs(res.data.start_date))
+        setValue('end_date', Dayjs(res.data.end_date))
+
+      })
+  
+    }
+    useEffect(()=>{
+      // console.log(MyId) 1st
+      GetData();
+    },[])// eslint-disable-line react-hooks/exhaustive-deps
+
+
     const navigate = useNavigate()
     const defaultValues = {
       name: '',
       comments: '',
       status: '',
     }
-    const schema = yup
-      .object({
-        name: yup.string().required('Name is a Required Field'),
-        status: yup.string().required('Status is a Required Field'),
-        comments: yup.string(),
-        start_date: yup.date().required('Start Date is a Required Field'),
-        end_date: yup.date().required('End Date is a Required Field').min(yup.ref('start_date'),'End Date can not be before the Start Date'),
+    const {handleSubmit,setValue,  control} = useForm({defaultValues:defaultValues})
 
-      })
-
-
-    const {handleSubmit, control} = useForm({defaultValues:defaultValues, resolver: yupResolver(schema)})
-  
     const submission = (data) => {
       const StartDate = Dayjs(data.start_date["$d"]).format("YYYY-MM-DD")
       const EndDate = Dayjs(data.end_date["$d"]).format("YYYY-MM-DD")
-      AxiosInstance.post( `project/`,{
+      AxiosInstance.put( `project/${MyId}/`,{
         name: data.name,
         status:data.status,
         comments: data.comments,
@@ -47,7 +56,6 @@ const Create = () => {
     }
   return (
     <div>
-      {/* { loading ? <p>Loading Data...</p>:  */}
       <form onSubmit={handleSubmit(submission)}>
       <Box sx={{display:'flex', width:'100%', backgroundColor:'#00003f', marginBottom:'10px'}}>
         <Typography sx={{marginLeft:'20px', color:'#fff'}}>
@@ -107,7 +115,7 @@ const Create = () => {
 
 
       </Box>
-      </form> 
+      </form>
     </div>
   )
 }
